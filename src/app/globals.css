@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --background: 248 250 252;
+  --foreground: 15 23 42;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: 6 10 18;
+  --foreground: 241 245 249;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(20, 184, 166, 0.18), transparent 32rem),
+    radial-gradient(circle at 80% 10%, rgba(244, 114, 182, 0.12), transparent 26rem),
+    rgb(var(--background));
+  color: rgb(var(--foreground));
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+@layer components {
+  .glass {
+    @apply border border-white/50 bg-white/70 shadow-soft backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/60;
+  }
+
+  .muted-panel {
+    @apply border border-slate-200/80 bg-slate-50/80 dark:border-white/10 dark:bg-white/[0.04];
+  }
+
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-950;
+  }
+}
