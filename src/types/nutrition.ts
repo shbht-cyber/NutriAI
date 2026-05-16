@@ -26,6 +26,7 @@ export type FoodEntry = {
 export type UserGoals = NutritionTotals & {
   waterGlasses: number;
   weightKg: number;
+  steps: number;
 };
 
 export type ThemeMode = "light" | "dark";

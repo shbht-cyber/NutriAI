@@ -27,7 +27,9 @@ type NutritionStore = {
   entries: FoodEntry[];
   goals: UserGoals;
   water: number;
+  steps: number;
   weightLogs: { date: string; weightKg: number }[];
+  stepLogs: { date: string; steps: number }[];
   theme: ThemeMode;
   filters: Filters;
   isLoading: boolean;
@@ -47,6 +49,7 @@ type NutritionStore = {
   setGoals: (goals: Partial<UserGoals>) => Promise<void>;
   setTheme: (theme: ThemeMode) => void;
   setWater: (water: number) => Promise<void>;
+  setSteps: (steps: number) => Promise<void>;
   addWeightLog: (weightKg: number) => Promise<void>;
 };
 
@@ -58,13 +61,16 @@ const defaultGoals: UserGoals = {
   fiber: 30,
   waterGlasses: 8,
   weightKg: 72,
+  steps: 10000,
 };
 
 export const useNutritionStore = create<NutritionStore>()((set, get) => ({
   entries: [],
   goals: defaultGoals,
   water: 0,
+  steps: 0,
   weightLogs: [],
+  stepLogs: [],
   theme: "dark",
   filters: {
     query: "",
@@ -82,7 +88,9 @@ export const useNutritionStore = create<NutritionStore>()((set, get) => ({
         entries: snapshot.entries,
         goals: snapshot.goals,
         water: snapshot.water,
+        steps: snapshot.steps,
         weightLogs: snapshot.weightLogs,
+        stepLogs: snapshot.stepLogs,
         isLoading: false,
       });
     } catch (error) {
@@ -97,7 +105,9 @@ export const useNutritionStore = create<NutritionStore>()((set, get) => ({
       entries: [],
       goals: defaultGoals,
       water: 0,
+      steps: 0,
       weightLogs: [],
+      stepLogs: [],
       error: "",
     }),
   addEntry: async (input) => {
@@ -130,7 +140,9 @@ export const useNutritionStore = create<NutritionStore>()((set, get) => ({
     set({
       goals: snapshot.goals,
       water: snapshot.water,
+      steps: snapshot.steps,
       weightLogs: snapshot.weightLogs,
+      stepLogs: snapshot.stepLogs,
     });
   },
   setTheme: (theme) => set({ theme }),
@@ -142,7 +154,9 @@ export const useNutritionStore = create<NutritionStore>()((set, get) => ({
       set({
         goals: snapshot.goals,
         water: snapshot.water,
+        steps: snapshot.steps,
         weightLogs: snapshot.weightLogs,
+        stepLogs: snapshot.stepLogs,
       });
     } catch (error) {
       set({
@@ -151,12 +165,33 @@ export const useNutritionStore = create<NutritionStore>()((set, get) => ({
       });
     }
   },
+  setSteps: async (steps) => {
+    const current = get();
+    set({ steps });
+    try {
+      const snapshot = await saveSettings({ steps });
+      set({
+        goals: snapshot.goals,
+        water: snapshot.water,
+        steps: snapshot.steps,
+        weightLogs: snapshot.weightLogs,
+        stepLogs: snapshot.stepLogs,
+      });
+    } catch (error) {
+      set({
+        steps: current.steps,
+        error: error instanceof Error ? error.message : "Unable to save steps.",
+      });
+    }
+  },
   addWeightLog: async (weightKg) => {
     const snapshot = await saveSettings({ weightKg });
     set({
       goals: snapshot.goals,
       water: snapshot.water,
+      steps: snapshot.steps,
       weightLogs: snapshot.weightLogs,
+      stepLogs: snapshot.stepLogs,
     });
   },
 }));

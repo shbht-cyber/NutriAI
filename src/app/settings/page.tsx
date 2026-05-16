@@ -1,7 +1,7 @@
 "use client";
 
 import { Save } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNutritionStore } from "@/store/useNutritionStore";
 import type { UserGoals } from "@/types/nutrition";
 
@@ -10,6 +10,10 @@ export default function SettingsPage() {
   const setGoals = useNutritionStore((state) => state.setGoals);
   const addWeightLog = useNutritionStore((state) => state.addWeightLog);
   const [draft, setDraft] = useState<UserGoals>(goals);
+
+  useEffect(() => {
+    setDraft(goals);
+  }, [goals]);
 
   async function save() {
     await setGoals(draft);
@@ -37,6 +41,7 @@ export default function SettingsPage() {
             ["fat", "Fat", "g"],
             ["fiber", "Fiber", "g"],
             ["waterGlasses", "Water", "glasses"],
+            ["steps", "Steps", "steps"],
             ["weightKg", "Weight", "kg"],
           ].map(([key, label, suffix]) => (
             <label key={key} className="space-y-2">

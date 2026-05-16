@@ -5,7 +5,9 @@ export type NutritionSnapshot = {
   entries: FoodEntry[];
   goals: UserGoals;
   water: number;
+  steps: number;
   weightLogs: { date: string; weightKg: number }[];
+  stepLogs: { date: string; steps: number }[];
 };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -71,6 +73,7 @@ export function saveSettings(input: {
   goals?: Partial<UserGoals>;
   water?: number;
   weightKg?: number;
+  steps?: number;
 }) {
   return request<NutritionSnapshot>("/api/nutrition/settings", {
     method: "PUT",

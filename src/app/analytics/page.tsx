@@ -2,10 +2,12 @@
 
 import { Charts } from "@/components/charts/Charts";
 import { useNutritionStore } from "@/store/useNutritionStore";
-import { addTotals, entriesForDay } from "@/utils/nutrition";
+import { addTotals, entriesForDay, weeklyStepsData } from "@/utils/nutrition";
 
 export default function AnalyticsPage() {
   const entries = useNutritionStore((state) => state.entries);
+  const stepLogs = useNutritionStore((state) => state.stepLogs);
+  const weeklySteps = weeklyStepsData(stepLogs).reduce((sum, row) => sum + row.steps, 0);
   const weekTotals = addTotals(
     Array.from({ length: 7 }, (_, index) =>
       entriesForDay(entries, index),
@@ -22,12 +24,13 @@ export default function AnalyticsPage() {
           Macro and calorie intelligence
         </h1>
       </div>
-      <div className="grid gap-3 md:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-5">
         {[
           ["Weekly calories", Math.round(weekTotals.calories), "kcal"],
           ["Protein", Math.round(weekTotals.protein), "g"],
           ["Carbs", Math.round(weekTotals.carbs), "g"],
           ["Fat", Math.round(weekTotals.fat), "g"],
+          ["Steps", weeklySteps, "steps"],
         ].map(([label, value, suffix]) => (
           <div key={label} className="glass rounded-3xl p-5">
             <p className="text-sm font-bold text-slate-500 dark:text-slate-400">

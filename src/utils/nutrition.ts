@@ -58,6 +58,18 @@ export function weeklyChartData(entries: FoodEntry[]) {
   });
 }
 
+export function weeklyStepsData(stepLogs: { date: string; steps: number }[]) {
+  return Array.from({ length: 7 }, (_, index) => {
+    const offset = 6 - index;
+    const date = subDays(new Date(), offset);
+    const dateKey = format(date, "yyyy-MM-dd");
+    return {
+      day: format(date, "EEE"),
+      steps: stepLogs.find((entry) => entry.date === dateKey)?.steps ?? 0,
+    };
+  });
+}
+
 export function clampPercent(value: number, goal: number) {
   if (!goal) return 0;
   return Math.min(100, Math.round((value / goal) * 100));

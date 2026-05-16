@@ -1,6 +1,14 @@
 "use client";
 
-import { Flame, GlassWater, Scale } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Flame,
+  Footprints,
+  GlassWater,
+  Minus,
+  Plus,
+  Scale,
+} from "lucide-react";
 import { useNutritionStore } from "@/store/useNutritionStore";
 import { addTotals, clampPercent, todayEntries } from "@/utils/nutrition";
 import { MacroProgress } from "@/components/dashboard/MacroProgress";
@@ -9,9 +17,17 @@ export function NutritionSummary() {
   const entries = useNutritionStore((state) => state.entries);
   const goals = useNutritionStore((state) => state.goals);
   const water = useNutritionStore((state) => state.water);
+  const steps = useNutritionStore((state) => state.steps);
   const setWater = useNutritionStore((state) => state.setWater);
+  const setSteps = useNutritionStore((state) => state.setSteps);
+  const [stepDraft, setStepDraft] = useState(steps);
   const totals = addTotals(todayEntries(entries));
   const caloriePercent = clampPercent(totals.calories, goals.calories);
+  const stepsPercent = clampPercent(steps, goals.steps);
+
+  useEffect(() => {
+    setStepDraft(steps);
+  }, [steps]);
 
   return (
     <section className="glass rounded-[2rem] p-5">
@@ -84,23 +100,67 @@ export function NutritionSummary() {
         />
       </div>
 
-      <div className="mt-6 grid grid-cols-3 gap-3">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="muted-panel rounded-2xl p-3">
           <Flame className="mb-2 size-4 text-rose-500" />
           <p className="text-lg font-black">{goals.calories}</p>
           <p className="text-xs text-slate-500">Goal</p>
         </div>
 
-        <button
-          onClick={() => void setWater(Math.min(goals.waterGlasses, water + 1))}
-          className="muted-panel rounded-2xl p-3 text-left"
-        >
-          <GlassWater className="mb-2 size-4 text-sky-500" />
+        <div className="muted-panel rounded-2xl p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <GlassWater className="size-4 text-sky-500" />
+            <div className="flex gap-1">
+              <button
+                onClick={() => void setWater(Math.max(0, water - 1))}
+                disabled={water <= 0}
+                className="focus-ring grid size-7 place-items-center rounded-lg bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-slate-900 dark:text-slate-200"
+                aria-label="Decrease water intake"
+              >
+                <Minus className="size-3.5" />
+              </button>
+              <button
+                onClick={() =>
+                  void setWater(Math.min(goals.waterGlasses, water + 1))
+                }
+                className="focus-ring grid size-7 place-items-center rounded-lg bg-sky-500 text-white"
+                aria-label="Increase water intake"
+              >
+                <Plus className="size-3.5" />
+              </button>
+            </div>
+          </div>
           <p className="text-lg font-black">
             {water}/{goals.waterGlasses}
           </p>
           <p className="text-xs text-slate-500">Water</p>
-        </button>
+        </div>
+
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void setSteps(Math.max(0, Math.round(stepDraft || 0)));
+          }}
+          className="muted-panel rounded-2xl p-3"
+        >
+          <div className="mb-2 flex items-center justify-between">
+            <Footprints className="size-4 text-emerald-500" />
+            <span className="text-xs font-black text-slate-500">
+              {stepsPercent}%
+            </span>
+          </div>
+          <input
+            type="number"
+            min={0}
+            value={stepDraft}
+            onChange={(event) => setStepDraft(Number(event.target.value))}
+            className="focus-ring mb-2 h-9 w-full rounded-xl border border-slate-200 bg-white px-2 text-sm font-black dark:border-white/10 dark:bg-slate-900"
+            aria-label="Steps covered today"
+          />
+          <button className="focus-ring w-full rounded-xl bg-emerald-500 px-2 py-1.5 text-xs font-black text-white">
+            Save steps
+          </button>
+        </form>
 
         <div className="muted-panel rounded-2xl p-3">
           <Scale className="mb-2 size-4 text-teal-500" />

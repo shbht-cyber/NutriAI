@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
-import { Camera, Mic, Plus, Sparkles, Wand2 } from "lucide-react";
+import { Plus, Sparkles, Wand2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { analyzeFood } from "@/services/nutritionApi";

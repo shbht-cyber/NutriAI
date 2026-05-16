@@ -44,11 +44,13 @@ export const settingsUpdateSchema = z.object({
     .extend({
       waterGlasses: z.coerce.number().int().positive(),
       weightKg: z.coerce.number().positive(),
+      steps: z.coerce.number().int().nonnegative(),
     })
     .partial()
     .optional(),
   water: z.coerce.number().int().nonnegative().optional(),
   weightKg: z.coerce.number().positive().optional(),
+  steps: z.coerce.number().int().nonnegative().optional(),
 });
 
 export type GeminiNutritionResponse = z.infer<typeof geminiNutritionSchema>;
