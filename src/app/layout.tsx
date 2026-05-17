@@ -5,6 +5,9 @@ import { AppShell } from "@/components/layout/AppShell";
 export const metadata: Metadata = {
   title: "NutriAI Calories Counter",
   description: "AI-powered calories and nutrition tracking dashboard.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
