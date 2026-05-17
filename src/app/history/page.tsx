@@ -1,16 +1,28 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { format, subDays } from "date-fns";
 import { FoodFilters } from "@/components/filters/FoodFilters";
 import { FoodCard } from "@/components/food/FoodCard";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { useFilteredEntries } from "@/hooks/useFilteredEntries";
 import { useNutritionStore } from "@/store/useNutritionStore";
-import { addTotals, entriesForDay } from "@/utils/nutrition";
+import type { EntryFilters } from "@/types/nutrition";
+import { addTotals, entriesForDay, filterEntries } from "@/utils/nutrition";
+
+const defaultHistoryFilters: EntryFilters = {
+  query: "",
+  meal: "all",
+  mode: "all",
+  date: "week",
+};
 
 export default function HistoryPage() {
   const entries = useNutritionStore((state) => state.entries);
-  const filtered = useFilteredEntries();
+  const [historyFilters, setHistoryFilters] = useState(defaultHistoryFilters);
+  const filtered = useMemo(
+    () => filterEntries(entries, historyFilters),
+    [entries, historyFilters],
+  );
   const snapshots = [0, 1, 2, 3, 4, 5, 6].map((offset) => {
     const dayEntries = entriesForDay(entries, offset);
     return {
@@ -50,7 +62,12 @@ export default function HistoryPage() {
           </div>
         ))}
       </div>
-      <FoodFilters />
+      <FoodFilters
+        filters={historyFilters}
+        onFiltersChange={(filters) =>
+          setHistoryFilters((current) => ({ ...current, ...filters }))
+        }
+      />
       <section className="space-y-3">
         {filtered.length ? (
           filtered.map((entry) => <FoodCard key={entry.id} entry={entry} />)

@@ -2,20 +2,30 @@
 
 import { CalendarDays, Filter } from "lucide-react";
 import { useNutritionStore } from "@/store/useNutritionStore";
+import type { EntryFilters } from "@/types/nutrition";
 import { meals } from "@/utils/nutrition";
 
-export function FoodFilters() {
-  const filters = useNutritionStore((state) => state.filters);
-  const setFilters = useNutritionStore((state) => state.setFilters);
+type FoodFiltersProps = {
+  filters?: EntryFilters;
+  onFiltersChange?: (filters: Partial<EntryFilters>) => void;
+};
+
+export function FoodFilters({ filters, onFiltersChange }: FoodFiltersProps) {
+  const storeFilters = useNutritionStore((state) => state.filters);
+  const setStoreFilters = useNutritionStore((state) => state.setFilters);
+  const activeFilters = filters ?? storeFilters;
+  const setFilters = onFiltersChange ?? setStoreFilters;
 
   return (
     <div className="glass grid gap-3 rounded-3xl p-4 md:grid-cols-3">
       <label className="relative">
         <Filter className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
         <select
-          value={filters.meal}
+          value={activeFilters.meal}
           onChange={(event) =>
-            setFilters({ meal: event.target.value as typeof filters.meal })
+            setFilters({
+              meal: event.target.value as EntryFilters["meal"],
+            })
           }
           className="focus-ring h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 font-semibold dark:border-white/10 dark:bg-slate-900"
         >
@@ -28,9 +38,9 @@ export function FoodFilters() {
         </select>
       </label>
       <select
-        value={filters.mode}
+        value={activeFilters.mode}
         onChange={(event) =>
-          setFilters({ mode: event.target.value as typeof filters.mode })
+          setFilters({ mode: event.target.value as EntryFilters["mode"] })
         }
         className="focus-ring h-12 rounded-2xl border border-slate-200 bg-white px-4 font-semibold dark:border-white/10 dark:bg-slate-900"
       >
@@ -41,9 +51,9 @@ export function FoodFilters() {
       <label className="relative">
         <CalendarDays className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
         <select
-          value={filters.date}
+          value={activeFilters.date}
           onChange={(event) =>
-            setFilters({ date: event.target.value as typeof filters.date })
+            setFilters({ date: event.target.value as EntryFilters["date"] })
           }
           className="focus-ring h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 font-semibold dark:border-white/10 dark:bg-slate-900"
         >

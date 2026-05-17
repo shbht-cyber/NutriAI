@@ -2,8 +2,8 @@
 
 import { create } from "zustand";
 import type {
+  EntryFilters,
   FoodEntry,
-  MealType,
   ThemeMode,
   UserGoals,
 } from "@/types/nutrition";
@@ -16,13 +16,6 @@ import {
   saveSettings,
 } from "@/services/nutritionData";
 
-type Filters = {
-  query: string;
-  meal: MealType | "all";
-  mode: "all" | "highProtein" | "lowCarb";
-  date: "today" | "yesterday" | "week" | "all";
-};
-
 type NutritionStore = {
   entries: FoodEntry[];
   goals: UserGoals;
@@ -31,7 +24,7 @@ type NutritionStore = {
   weightLogs: { date: string; weightKg: number }[];
   stepLogs: { date: string; steps: number }[];
   theme: ThemeMode;
-  filters: Filters;
+  filters: EntryFilters;
   isLoading: boolean;
   error: string;
   loadSnapshot: () => Promise<void>;
@@ -45,7 +38,7 @@ type NutritionStore = {
   ) => Promise<FoodEntry>;
   deleteEntry: (id: string) => Promise<void>;
   duplicateEntry: (id: string) => Promise<FoodEntry>;
-  setFilters: (filters: Partial<Filters>) => void;
+  setFilters: (filters: Partial<EntryFilters>) => void;
   setGoals: (goals: Partial<UserGoals>) => Promise<void>;
   setTheme: (theme: ThemeMode) => void;
   setWater: (water: number) => Promise<void>;

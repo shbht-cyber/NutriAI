@@ -2,16 +2,22 @@
 
 import { useEffect, useState } from "react";
 import {
+  CheckCircle2,
   Flame,
   Footprints,
   GlassWater,
   Minus,
   Plus,
   Scale,
+  XCircle,
 } from "lucide-react";
 import { useNutritionStore } from "@/store/useNutritionStore";
 import { addTotals, clampPercent, todayEntries } from "@/utils/nutrition";
 import { MacroProgress } from "@/components/dashboard/MacroProgress";
+
+function normalizeStepDraft(value: string) {
+  return value.replace(/^0+(?=\d)/, "");
+}
 
 export function NutritionSummary() {
   const entries = useNutritionStore((state) => state.entries);
@@ -20,14 +26,49 @@ export function NutritionSummary() {
   const steps = useNutritionStore((state) => state.steps);
   const setWater = useNutritionStore((state) => state.setWater);
   const setSteps = useNutritionStore((state) => state.setSteps);
-  const [stepDraft, setStepDraft] = useState(steps);
+  const [stepDraft, setStepDraft] = useState(String(steps));
+  const [isSavingSteps, setIsSavingSteps] = useState(false);
+  const [stepToast, setStepToast] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const totals = addTotals(todayEntries(entries));
   const caloriePercent = clampPercent(totals.calories, goals.calories);
   const stepsPercent = clampPercent(steps, goals.steps);
 
   useEffect(() => {
-    setStepDraft(steps);
+    setStepDraft(String(steps));
   }, [steps]);
+
+  useEffect(() => {
+    if (!stepToast) return;
+
+    const timeout = window.setTimeout(() => setStepToast(null), 3200);
+    return () => window.clearTimeout(timeout);
+  }, [stepToast]);
+
+  async function saveSteps() {
+    setIsSavingSteps(true);
+    setStepToast(null);
+
+    const numericStepDraft = Number(stepDraft);
+    const nextSteps = Number.isFinite(numericStepDraft)
+      ? Math.max(0, Math.round(numericStepDraft))
+      : 0;
+
+    try {
+      await setSteps(nextSteps);
+      setStepToast({ type: "success", message: "Steps saved successfully." });
+    } catch (error) {
+      setStepToast({
+        type: "error",
+        message:
+          error instanceof Error ? error.message : "Unable to save steps.",
+      });
+    } finally {
+      setIsSavingSteps(false);
+    }
+  }
 
   return (
     <section className="glass rounded-[2rem] p-5">
@@ -139,9 +180,9 @@ export function NutritionSummary() {
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            void setSteps(Math.max(0, Math.round(stepDraft || 0)));
+            void saveSteps();
           }}
-          className="muted-panel rounded-2xl p-3"
+          className="muted-panel rounded-2xl"
         >
           <div className="mb-2 flex items-center justify-between">
             <Footprints className="size-4 text-emerald-500" />
@@ -153,12 +194,17 @@ export function NutritionSummary() {
             type="number"
             min={0}
             value={stepDraft}
-            onChange={(event) => setStepDraft(Number(event.target.value))}
+            onChange={(event) =>
+              setStepDraft(normalizeStepDraft(event.target.value))
+            }
             className="focus-ring mb-2 h-9 w-full rounded-xl border border-slate-200 bg-white px-2 text-sm font-black dark:border-white/10 dark:bg-slate-900"
             aria-label="Steps covered today"
           />
-          <button className="focus-ring w-full rounded-xl bg-emerald-500 px-2 py-1.5 text-xs font-black text-white">
-            Save steps
+          <button
+            disabled={isSavingSteps}
+            className="focus-ring w-full rounded-xl bg-emerald-500 px-2 py-1.5 text-xs font-black text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSavingSteps ? "Saving..." : "Save steps"}
           </button>
         </form>
 
@@ -168,6 +214,24 @@ export function NutritionSummary() {
           <p className="text-xs text-slate-500">Weight kg</p>
         </div>
       </div>
+
+      {stepToast ? (
+        <div
+          role="status"
+          className={`fixed bottom-5 right-5 z-50 flex max-w-sm items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-bold shadow-soft ${
+            stepToast.type === "success"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-200"
+              : "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/15 dark:text-rose-200"
+          }`}
+        >
+          {stepToast.type === "success" ? (
+            <CheckCircle2 className="size-5 shrink-0" />
+          ) : (
+            <XCircle className="size-5 shrink-0" />
+          )}
+          {stepToast.message}
+        </div>
+      ) : null}
     </section>
   );
 }

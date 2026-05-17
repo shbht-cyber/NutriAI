@@ -23,6 +23,13 @@ export type FoodEntry = {
   updatedAt: string;
 };
 
+export type EntryFilters = {
+  query: string;
+  meal: MealType | "all";
+  mode: "all" | "highProtein" | "lowCarb";
+  date: "today" | "yesterday" | "week" | "all";
+};
+
 export type UserGoals = NutritionTotals & {
   waterGlasses: number;
   weightKg: number;

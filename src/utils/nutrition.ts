@@ -1,5 +1,10 @@
 import { format, isSameDay, parseISO, subDays } from "date-fns";
-import type { FoodEntry, MealType, NutritionTotals } from "@/types/nutrition";
+import type {
+  EntryFilters,
+  FoodEntry,
+  MealType,
+  NutritionTotals,
+} from "@/types/nutrition";
 
 export const emptyTotals: NutritionTotals = {
   calories: 0,
@@ -37,6 +42,33 @@ export function todayEntries(entries: FoodEntry[]) {
 export function entriesForDay(entries: FoodEntry[], offset: number) {
   const date = subDays(new Date(), offset);
   return entries.filter((entry) => isSameDay(parseISO(entry.createdAt), date));
+}
+
+export function filterEntries(
+  entries: FoodEntry[],
+  filters: EntryFilters,
+  now = new Date(),
+) {
+  return entries.filter((entry) => {
+    const createdAt = parseISO(entry.createdAt);
+    const query = filters.query.toLowerCase();
+    const queryHit =
+      !query ||
+      entry.text.toLowerCase().includes(query) ||
+      entry.items.some((item) => item.name.toLowerCase().includes(query));
+    const mealHit = filters.meal === "all" || entry.meal === filters.meal;
+    const modeHit =
+      filters.mode === "all" ||
+      (filters.mode === "highProtein" && entry.totals.protein >= 25) ||
+      (filters.mode === "lowCarb" && entry.totals.carbs <= 25);
+    const dateHit =
+      filters.date === "all" ||
+      (filters.date === "today" && isSameDay(createdAt, now)) ||
+      (filters.date === "yesterday" && isSameDay(createdAt, subDays(now, 1))) ||
+      (filters.date === "week" && createdAt >= subDays(now, 7));
+
+    return queryHit && mealHit && modeHit && dateHit;
+  });
 }
 
 export function weeklyChartData(entries: FoodEntry[]) {
