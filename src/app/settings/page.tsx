@@ -5,19 +5,52 @@ import { useEffect, useState } from "react";
 import { useNutritionStore } from "@/store/useNutritionStore";
 import type { UserGoals } from "@/types/nutrition";
 
+const goalFields: [keyof UserGoals, string, string][] = [
+  ["calories", "Calories", "kcal"],
+  ["protein", "Protein", "g"],
+  ["carbs", "Carbs", "g"],
+  ["fat", "Fat", "g"],
+  ["fiber", "Fiber", "g"],
+  ["waterGlasses", "Water", "glasses"],
+  ["steps", "Steps", "steps"],
+  ["weightKg", "Weight", "kg"],
+];
+
+function normalizeNumberInput(value: string) {
+  const numeric = value
+    .replace(/[^\d.]/g, "")
+    .replace(/(\..*)\./g, "$1");
+
+  if (numeric === "") return "";
+  if (numeric.startsWith(".")) return `0${numeric}`;
+  return numeric.replace(/^0+(?=\d)/, "");
+}
+
 export default function SettingsPage() {
   const goals = useNutritionStore((state) => state.goals);
   const setGoals = useNutritionStore((state) => state.setGoals);
   const addWeightLog = useNutritionStore((state) => state.addWeightLog);
-  const [draft, setDraft] = useState<UserGoals>(goals);
+  const [draft, setDraft] = useState<Record<keyof UserGoals, string>>(
+    Object.fromEntries(
+      goalFields.map(([key]) => [key, String(goals[key])]),
+    ) as Record<keyof UserGoals, string>,
+  );
 
   useEffect(() => {
-    setDraft(goals);
+    setDraft(
+      Object.fromEntries(
+        goalFields.map(([key]) => [key, String(goals[key])]),
+      ) as Record<keyof UserGoals, string>,
+    );
   }, [goals]);
 
   async function save() {
-    await setGoals(draft);
-    await addWeightLog(draft.weightKg);
+    const nextGoals = Object.fromEntries(
+      goalFields.map(([key]) => [key, Number(draft[key] || 0)]),
+    ) as UserGoals;
+
+    await setGoals(nextGoals);
+    await addWeightLog(nextGoals.weightKg);
   }
 
   return (
@@ -34,30 +67,25 @@ export default function SettingsPage() {
       <section className="glass rounded-[2rem] p-5">
         <h2 className="text-xl font-black">Daily Targets</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {[
-            ["calories", "Calories", "kcal"],
-            ["protein", "Protein", "g"],
-            ["carbs", "Carbs", "g"],
-            ["fat", "Fat", "g"],
-            ["fiber", "Fiber", "g"],
-            ["waterGlasses", "Water", "glasses"],
-            ["steps", "Steps", "steps"],
-            ["weightKg", "Weight", "kg"],
-          ].map(([key, label, suffix]) => (
+          {goalFields.map(([key, label, suffix]) => (
             <label key={key} className="space-y-2">
               <span className="text-sm font-bold text-slate-500 dark:text-slate-400">
                 {label}
               </span>
               <div className="flex overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900">
                 <input
-                  type="number"
-                  value={draft[key as keyof UserGoals]}
-                  onChange={(event) =>
+                  type="text"
+                  inputMode="decimal"
+                  value={draft[key]}
+                  onChange={(event) => {
+                    const cleanedValue = normalizeNumberInput(
+                      event.target.value,
+                    );
                     setDraft((current) => ({
                       ...current,
-                      [key]: Number(event.target.value),
-                    }))
-                  }
+                      [key]: cleanedValue,
+                    }));
+                  }}
                   className="focus-ring min-w-0 flex-1 bg-transparent px-4 py-3 font-bold"
                 />
                 <span className="grid place-items-center px-3 text-sm font-semibold text-slate-400">
